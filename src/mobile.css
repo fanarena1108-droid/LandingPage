@@ -1,0 +1,733 @@
+.mobile-only {
+  display: none;
+}
+.contact-sheet {
+  color: #f4faf3;
+  background: #0d1f17;
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  padding: 16px 24px max(40px, env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 528px;
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.contact-sheet::backdrop {
+  background: #0009;
+}
+.sheet-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  min-height: 44px;
+  padding: 0;
+  font-size: 16px;
+}
+.contact-sheet h2 {
+  font-size: 24px;
+  line-height: 34px;
+  margin: 0 0 16px;
+}
+.contact-sheet .field {
+  margin: 0 0 16px;
+}
+.contact-sheet label {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 8px;
+}
+.contact-sheet input,
+.contact-sheet select,
+.contact-sheet textarea {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid #355043;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #f4faf3;
+  background: #06120d;
+  font-size: 16px;
+  line-height: 22px;
+}
+.contact-sheet textarea {
+  height: 128px;
+  resize: vertical;
+}
+.contact-sheet :focus-visible {
+  outline: 2px solid #ccff00;
+  outline-offset: 2px;
+}
+.contact-sheet .button {
+  width: 100%;
+  font-size: 16px;
+}
+.sheet-status:empty {
+  display: none;
+}
+.sheet-status {
+  line-height: 22px;
+  margin-bottom: 16px;
+}
+.sheet-status.error {
+  color: #ffb5aa;
+}
+@media (max-width: 767px) {
+  :root {
+    --gutter: 24px;
+  }
+  html {
+    scroll-snap-type: y proximity;
+  }
+  html.mobile-snap-fits {
+    scroll-snap-type: y mandatory;
+  }
+  .mobile-only {
+    display: block;
+  }
+  .container {
+    width: calc(100% - 48px);
+    max-width: 480px;
+  }
+  .section {
+    min-height: 100vh;
+    min-height: 100svh;
+    height: auto;
+    overflow: visible;
+    scroll-snap-align: start;
+  }
+  .section::before,
+  .section::after {
+    display: none;
+  }
+  .header-links,
+  .header-cta,
+  .section-rail,
+  .desktop-support-form,
+  .feature-cards,
+  .microcopy {
+    display: none;
+  }
+  .hero {
+    background: #020704;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    min-height: 68px;
+    padding: 20px 0 0;
+    gap: 0;
+  }
+  .brand {
+    font-size: 18px;
+    gap: 8px;
+  }
+  .brand img {
+    width: 38px;
+    height: 38px;
+  }
+  .hero-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 20px 0 0;
+    gap: 16px;
+  }
+  .hero-copy {
+    padding: 0;
+  }
+  .launch-pill {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 0;
+    font-size: 12px;
+    line-height: 17px;
+  }
+  .launch-pill .live-dot {
+    display: none;
+  }
+  h1 {
+    font-size: 36px;
+    line-height: 42px;
+    letter-spacing: -1px;
+    margin-top: 16px;
+  }
+  h1 span {
+    display: inline;
+  }
+  .hero-copy .description {
+    margin-top: 16px;
+    color: #f4faf3;
+  }
+  .description,
+  .feature-copy .description {
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0;
+    max-width: none;
+  }
+  .hero-cta {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    min-height: 52px;
+    margin-top: 16px;
+  }
+  .waitlist-counter {
+    padding: 0;
+    min-height: 20px;
+    min-width: 0;
+    border: 0;
+    background: none;
+    margin-top: 16px;
+    color: #9eb3a8;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  .waitlist-counter .live-dot {
+    background: #9eb3a8;
+    animation: none;
+  }
+  .count-unavailable {
+    display: none;
+  }
+  .hero-art {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    aspect-ratio: auto;
+  }
+  .hero-art::after {
+    display: none;
+  }
+  .hero-photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 345 / 240;
+    object-fit: cover;
+    border-radius: 24px;
+  }
+  .result-card {
+    position: static;
+    width: 100%;
+    margin: 16px 0 0;
+    min-height: 97px;
+    padding: 16px;
+    border: 0;
+    border-radius: 24px;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    background: #06120d;
+  }
+  .team {
+    min-height: 40px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    font-size: 16px;
+    justify-content: space-between;
+  }
+  .team img {
+    width: 28px;
+    height: 28px;
+  }
+  .team strong {
+    white-space: normal;
+  }
+  .away {
+    border: 0;
+  }
+  .score {
+    border: 0;
+    min-height: 0;
+  }
+  .score strong {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .score span {
+    display: none;
+  }
+  .full-time {
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    color: #ccff00;
+    font-size: 12px;
+    line-height: 17px;
+  }
+  .scroll-hint {
+    margin-top: auto;
+    padding-top: 32px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    min-height: 44px;
+    font-size: 12px;
+    color: #9eb3a8;
+  }
+  .feature-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+    padding: 48px 0 27px;
+  }
+  .feature-copy,
+  .fan-talk .feature-copy,
+  .challenges .feature-copy {
+    padding: 0;
+    margin: 0;
+  }
+  .eyebrow {
+    font-size: 12px;
+    line-height: 17px;
+  }
+  .section h2,
+  .fan-talk h2,
+  .support-copy h2,
+  .competition-heading h2 {
+    margin-top: 20px;
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.7px;
+    font-weight: 700;
+  }
+  .feature-copy .description {
+    margin-top: 20px;
+  }
+  .phone-art,
+  .matchday .phone-art,
+  .fan-talk .phone-art,
+  .challenges .phone-art,
+  .competition-art .phone-art {
+    position: static;
+    transform: none;
+    width: 220px;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+    margin: 0 auto;
+    padding: 0;
+    flex: none;
+  }
+  .phone-art img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  .phone-art::before,
+  .phone-art::after {
+    display: none;
+  }
+  .matchday {
+    background: #050c09;
+  }
+  .fan-talk {
+    background: linear-gradient(110deg, #05120b, #071c12);
+  }
+  .fan-talk .feature-layout {
+    padding-top: 40px;
+    gap: 14px;
+  }
+  .fan-talk h2,
+  .fan-talk .description {
+    margin-top: 14px;
+  }
+  .fan-talk .phone-art {
+    width: 200px;
+  }
+  .comments {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 14px;
+    max-width: none;
+  }
+  .comment {
+    width: 100%;
+    max-width: none;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 20px;
+    border: 0;
+    border-radius: 16px;
+    margin: 0;
+  }
+  .comment:nth-child(2) {
+    width: calc(100% - 24px);
+    margin: 0;
+    background: #06120d;
+  }
+  .comment:nth-child(3) {
+    display: none;
+  }
+  .challenges {
+    background: #ccff00;
+  }
+  .metrics {
+    width: 100%;
+    margin: 20px 0 0;
+    padding: 20px 24px;
+    gap: 8px;
+    min-height: 96px;
+    border: 0;
+    border-radius: 20px;
+    background: #06120d;
+    display: flex;
+    justify-content: space-between;
+  }
+  .metrics div {
+    flex: 1;
+    padding: 0;
+    border: 0;
+  }
+  .metrics dd {
+    font-size: 24px;
+    line-height: 34px;
+    color: #ccff00;
+  }
+  .metrics dt {
+    font-size: 12px;
+    line-height: 17px;
+    color: #f4faf3;
+    margin-top: 4px;
+  }
+  .competitions {
+    background: #050c09;
+  }
+  .competitions > .container {
+    min-height: 0;
+    padding: 48px 0 27px;
+  }
+  .competition-heading {
+    text-align: left;
+    padding: 0;
+  }
+  .competition-heading h2 {
+    margin-top: 18px;
+  }
+  .competition-heading .description {
+    margin: 18px 0 0;
+  }
+  .competition-art {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 18px;
+    margin-top: 18px;
+    min-height: 0;
+  }
+  .league-chips {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+    width: 260px;
+    max-width: 100%;
+    gap: 18px 8px;
+  }
+  .league-chip {
+    position: static;
+    padding: 10px;
+    font-size: 10px;
+    line-height: 14px;
+    border: 0;
+    background: #06120d;
+    transform: none;
+    box-shadow: none;
+  }
+  .league-0 {
+    order: 0;
+  }
+  .league-2 {
+    order: 1;
+  }
+  .league-1 {
+    order: 2;
+  }
+  .league-4 {
+    order: 3;
+  }
+  .league-5 {
+    order: 4;
+  }
+  .league-3 {
+    display: none;
+  }
+  .support {
+    background: #030906;
+  }
+  .support-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 120px 0 48px;
+    min-height: 0;
+  }
+  .support-copy h2 {
+    margin-top: 24px;
+    line-height: 45px;
+  }
+  .support-copy .description {
+    margin-top: 24px;
+    color: #f4faf3;
+  }
+  .platforms {
+    margin-top: 24px;
+    gap: 24px;
+  }
+  .platform {
+    padding: 16px;
+    min-height: 81px;
+    border: 0;
+    border-radius: 16px;
+    background: #06120d;
+    grid-template-columns: 32px 1fr;
+    gap: 16px;
+  }
+  .platform img {
+    width: 32px;
+    height: 32px;
+  }
+  .platform strong {
+    font-size: 18px;
+    line-height: 25px;
+  }
+  .platform p {
+    font-size: 14px;
+    line-height: 20px;
+    margin-top: 4px;
+  }
+  .platform-action {
+    display: none;
+  }
+  .contact-trigger {
+    width: 100%;
+    font-size: 16px;
+  }
+  .waitlist {
+    background: #020704;
+    display: block;
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+  .waitlist-area {
+    padding: 48px 0 0;
+    min-height: 0;
+  }
+  .waitlist-card {
+    display: block;
+    min-height: 0;
+    overflow: visible;
+    padding: 24px 20px;
+    border-radius: 24px;
+  }
+  .waitlist-card h2 {
+    font-size: 36px;
+    line-height: 50px;
+    letter-spacing: -0.7px;
+    margin-top: 20px;
+  }
+  .waitlist-card .description {
+    margin-top: 20px;
+  }
+  .waitlist-form {
+    padding: 0;
+    margin-top: 20px;
+  }
+  .email-capture {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 0;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+  }
+  .email-capture input {
+    flex: none;
+    width: 100%;
+    min-height: 54px;
+    padding: 16px;
+    border-radius: 16px;
+    background: white;
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .email-capture .button {
+    width: 100%;
+    min-height: 54px;
+    justify-content: start;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 16px;
+  }
+  .privacy-note {
+    margin: 20px 0 0;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .form-status:empty {
+    display: none;
+  }
+  .waitlist footer {
+    border: 0;
+  }
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    padding: 24px 0 0;
+    gap: 24px;
+  }
+  .footer-inner .brand {
+    flex-direction: column;
+    align-items: start;
+    gap: 24px;
+    font-size: 22px;
+    line-height: 31px;
+  }
+  .footer-inner .brand img {
+    width: 40px;
+    height: 40px;
+  }
+  .legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 240px;
+    gap: 0 16px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .legal-links > :last-child {
+    flex-basis: 100%;
+  }
+  .legal-links a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .copyright {
+    font-size: 14px;
+    line-height: 20px;
+    max-width: 260px;
+  }
+  .entrance-ready {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 767px) {
+  .header .brand {
+    font-size: 18px;
+  }
+  .button {
+    white-space: normal;
+  }
+  h1,
+  h2,
+  p,
+  .button {
+    overflow-wrap: anywhere;
+  }
+  .feature-copy {
+    min-width: 0;
+  }
+  .email-capture input {
+    color: #06120d;
+  }
+  .email-capture input::placeholder {
+    color: #43564b;
+    opacity: 1;
+  }
+  .team {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .team strong {
+    overflow-wrap: anywhere;
+  }
+  .comment {
+    min-height: 52px;
+  }
+  .comment:first-child {
+    width: 100%;
+    font-weight: 400;
+  }
+  .comment:nth-child(2) {
+    max-width: none;
+  }
+  .challenges .feature-copy h2 {
+    margin-top: 20px;
+  }
+  .metrics > div {
+    gap: 0;
+  }
+  .metrics dt {
+    font-weight: 400;
+  }
+  .competition-heading .description,
+  .support-copy .description,
+  .waitlist-card .description {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .league-chip {
+    color: #f4faf3;
+  }
+  .platform.instagram strong {
+    color: #f4faf3;
+  }
+  .platform.instagram p {
+    color: #9eb3a8;
+  }
+  .waitlist-card {
+    background: #ccff00;
+  }
+  .waitlist-card::before,
+  .waitlist-card::after {
+    display: none;
+  }
+  .waitlist-form .button {
+    background: #06120d;
+    color: #ccff00;
+  }
+  .contact-sheet label {
+    text-transform: none;
+    letter-spacing: 0;
+    color: #f4faf3;
+    font-weight: 400;
+  }
+}
+@media (max-width: 359px) {
+  .result-card {
+    gap: 5px;
+    padding: 12px;
+  }
+  .team {
+    font-size: 12px;
+    gap: 4px;
+  }
+  .team img {
+    width: 24px;
+    height: 24px;
+  }
+  .score strong {
+    font-size: 14px;
+  }
+}
+@media (max-width: 767px) and (max-height: 600px) {
+  .support-layout {
+    padding-top: 48px;
+  }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
