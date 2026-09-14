@@ -147,7 +147,7 @@ test('support keyboard validation preserves values on failure and focuses succes
   );
   fail = false;
   await form.getByRole('button').click();
-  await expect(form.getByRole('status')).toContainText('Message sent');
+  await expect(form.getByRole('status')).toContainText('Message received');
   await expect(form.getByRole('status')).toBeFocused();
 });
 test('reduced motion and store semantics', async ({ page }) => {

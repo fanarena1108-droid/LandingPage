@@ -143,7 +143,7 @@ test('contact validates, retains draft, traps focus, closes all ways and retries
   expect(requests).toBe(1);
   release();
   await expect(dialog.getByRole('status')).toHaveText(
-    'Couldn’t send. Your message is saved here. Try again.',
+    'We couldn’t send this right now. Your details remain in this form — please try again.',
   );
   await expect(page.locator('#contact-message')).toHaveValue(
     ' A mobile message ',
@@ -153,7 +153,7 @@ test('contact validates, retains draft, traps focus, closes all ways and retries
   await dialog.getByRole('button', { name: 'TRY AGAIN' }).click();
   await expect(dialog.getByRole('heading')).toHaveText('You’re all set.');
   await expect(dialog.getByRole('status')).toHaveText(
-    'Message sent. Thanks for getting in touch.',
+    'Message received. Thanks for getting in touch.',
   );
   await dialog.getByRole('button', { name: 'DONE' }).click();
   await expect(page.locator('.contact-trigger')).toBeFocused();

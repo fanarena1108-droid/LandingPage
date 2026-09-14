@@ -4,7 +4,11 @@ import { joinWaitlist, sendSupport, SubmissionError } from '../api';
 import { content } from '../content';
 import { useMobile } from '../useMobile';
 
-type Values = { email: string; category: string; message: string };
+type Values = {
+  email: string;
+  category: 'General query' | 'Feedback' | 'Grievance';
+  message: string;
+};
 type Errors = Partial<Record<keyof Values, string>>;
 type State = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error';
 
@@ -26,10 +30,12 @@ export function Forms({
   const [state, setState] = useState<State>('idle');
   const [result, setResult] = useState('');
   const pending = useRef(false);
+  const contactKey = useRef<string | null>(null);
   const status = useRef<HTMLParagraphElement>(null);
   const form = useRef<HTMLFormElement>(null);
   const fieldId = (name: keyof Values) => `${kind}-${name}`;
   function update(name: keyof Values, value: string) {
+    contactKey.current = null;
     setValues((old) => ({ ...old, [name]: value }));
     setErrors((old) => ({ ...old, [name]: undefined }));
     if (state !== 'submitting') {
@@ -61,13 +67,18 @@ export function Forms({
     setState('submitting');
     setResult('Sending…');
     try {
-      if (support)
-        await sendSupport({ ...values, email, message: values.message.trim() });
-      else await joinWaitlist(email);
+      if (support) {
+        contactKey.current ??= crypto.randomUUID();
+        await sendSupport(
+          { ...values, email, message: values.message.trim() },
+          contactKey.current,
+        );
+        contactKey.current = null;
+      } else await joinWaitlist(email);
       setState('success');
       setResult(
         support
-          ? 'Message sent. Thanks for getting in touch with FanArena.'
+          ? 'Message received. Thanks for getting in touch with FanArena.'
           : mobile
             ? 'You’re on the list.'
             : 'You’re on the list! We’ll email you when FanArena is ready.',
@@ -83,14 +94,16 @@ export function Forms({
         error.kind === 'duplicate';
       setState(duplicate ? 'duplicate' : 'error');
       setResult(
-        mobile && !support
-          ? duplicate
-            ? 'You’re already on the list.'
-            : 'Couldn’t join. Please try again.'
-          : error instanceof SubmissionError &&
-              (error.kind !== 'duplicate' || !support)
-            ? error.message
-            : 'We couldn’t send this right now. Please try again.',
+        error instanceof SubmissionError && error.kind === 'rate_limit'
+          ? error.message
+          : mobile && !support
+            ? duplicate
+              ? 'You’re already on the list.'
+              : 'Couldn’t join. Please try again.'
+            : error instanceof SubmissionError &&
+                (error.kind !== 'duplicate' || !support)
+              ? error.message
+              : 'We couldn’t send this right now. Please try again.',
       );
     } finally {
       pending.current = false;
@@ -174,7 +187,16 @@ export function Forms({
               id={fieldId('category')}
               name="category"
               value={values.category}
-              onChange={(e) => update('category', e.target.value)}
+              disabled={state === 'submitting'}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (
+                  value === 'General query' ||
+                  value === 'Feedback' ||
+                  value === 'Grievance'
+                )
+                  update('category', value);
+              }}
               required
               aria-invalid={Boolean(errors.category)}
               aria-describedby={

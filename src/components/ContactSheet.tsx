@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { sendSupport } from '../api';
+import { sendSupport, SubmissionError } from '../api';
 type Draft = { name: string; email: string; topic: string; message: string };
 const empty: Draft = { name: '', email: '', topic: '', message: '' };
 const messages = {
@@ -18,6 +18,8 @@ export function ContactSheet() {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const pending = useRef(false);
+  const contactKey = useRef<string | null>(null);
+  const [failure, setFailure] = useState('');
   const close = () => {
     if (history.state?.fanarenaContact) history.back();
     else setOpen(false);
@@ -93,14 +95,28 @@ export function ContactSheet() {
     pending.current = true;
     setState('sending');
     try {
+      const topic = draft.topic.trim();
+      if (topic !== 'Query' && topic !== 'Feedback' && topic !== 'Grievance')
+        return;
+      contactKey.current ??= crypto.randomUUID();
       await sendSupport(
-        Object.fromEntries(
-          Object.entries(draft).map(([k, v]) => [k, v.trim()]),
-        ),
+        {
+          name: draft.name.trim(),
+          email: draft.email.trim(),
+          topic,
+          message: draft.message.trim(),
+        },
+        contactKey.current,
       );
+      contactKey.current = null;
       setState('success');
       setDraft(empty);
-    } catch {
+    } catch (error) {
+      setFailure(
+        error instanceof SubmissionError
+          ? error.message
+          : 'Couldn’t send. Your message remains in this form. Try again.',
+      );
       setState('error');
     } finally {
       pending.current = false;
@@ -170,9 +186,9 @@ export function ContactSheet() {
             </h2>
             <p role="status" tabIndex={-1} className={`sheet-status ${state}`}>
               {state === 'success'
-                ? 'Message sent. Thanks for getting in touch.'
+                ? 'Message received. Thanks for getting in touch.'
                 : state === 'error'
-                  ? 'Couldn’t send. Your message is saved here. Try again.'
+                  ? failure
                   : state === 'sending'
                     ? 'Sending your message…'
                     : ''}
@@ -204,7 +220,10 @@ export function ContactSheet() {
                         | HTMLSelectElement
                         | HTMLTextAreaElement
                       >,
-                    ) => setDraft({ ...draft, [key]: e.target.value }),
+                    ) => {
+                      contactKey.current = null;
+                      setDraft({ ...draft, [key]: e.target.value });
+                    },
                     onBlur: () =>
                       setErrors((old) => ({ ...old, [key]: validate(key) })),
                   };
