@@ -11,6 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "playwright test",
+    "build:backend": "npm --prefix ../Backend run build",
+    "test:integration": "npm run build:backend && playwright test --config playwright.integration.config.ts",
     "assets:optimize": "node scripts/optimize-assets.mjs"
   },
   "dependencies": {

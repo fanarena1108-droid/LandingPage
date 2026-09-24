@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { sendSupport } from '../api';
-type Draft = { name: string; email: string; topic: string; message: string };
+import { sendSupport, SubmissionError, type MobileContactBody } from '../api';
+type Draft = {
+  name: string;
+  email: string;
+  topic: MobileContactBody['topic'] | '';
+  message: string;
+};
+type Errors = Partial<Record<keyof Draft, string>>;
 const empty: Draft = { name: '', email: '', topic: '', message: '' };
 const messages = {
   name: 'Enter your name.',
@@ -13,11 +19,22 @@ const messages = {
 export function ContactSheet() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(empty);
-  const [errors, setErrors] = useState<Partial<Draft>>({});
+  const [errors, setErrors] = useState<Errors>({});
   const [state, setState] = useState('idle');
+  const [status, setStatus] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const pending = useRef(false);
+  const idempotencyKey = useRef<string | null>(null);
+  function update<K extends keyof Draft>(key: K, value: Draft[K]) {
+    if (draft[key] !== value) idempotencyKey.current = null;
+    setDraft((old) => ({ ...old, [key]: value }));
+    setErrors((old) => ({ ...old, [key]: undefined }));
+    if (state === 'error') {
+      setState('idle');
+      setStatus('');
+    }
+  }
   const close = () => {
     if (history.state?.fanarenaContact) history.back();
     else setOpen(false);
@@ -80,7 +97,7 @@ export function ContactSheet() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (pending.current) return;
-    const next: Partial<Draft> = {};
+    const next: Errors = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((key) => {
       const error = validate(key);
       if (error) next[key] = error;
@@ -92,16 +109,27 @@ export function ContactSheet() {
     }
     pending.current = true;
     setState('sending');
+    setStatus('Sending your message…');
     try {
-      await sendSupport(
-        Object.fromEntries(
-          Object.entries(draft).map(([k, v]) => [k, v.trim()]),
-        ),
-      );
+      const payload: MobileContactBody = {
+        name: draft.name.trim(),
+        email: draft.email.trim(),
+        topic: draft.topic as MobileContactBody['topic'],
+        message: draft.message.trim(),
+      };
+      idempotencyKey.current ??= crypto.randomUUID();
+      await sendSupport(payload, idempotencyKey.current);
+      idempotencyKey.current = null;
       setState('success');
+      setStatus('Message sent. Thanks for getting in touch.');
       setDraft(empty);
-    } catch {
+    } catch (error) {
       setState('error');
+      setStatus(
+        error instanceof SubmissionError
+          ? error.message
+          : 'Couldn’t send. Your message is saved here. Try again.',
+      );
     } finally {
       pending.current = false;
       requestAnimationFrame(() =>
@@ -169,13 +197,7 @@ export function ContactSheet() {
               {state === 'success' ? 'You’re all set.' : 'How can we help?'}
             </h2>
             <p role="status" tabIndex={-1} className={`sheet-status ${state}`}>
-              {state === 'success'
-                ? 'Message sent. Thanks for getting in touch.'
-                : state === 'error'
-                  ? 'Couldn’t send. Your message is saved here. Try again.'
-                  : state === 'sending'
-                    ? 'Sending your message…'
-                    : ''}
+              {status}
             </p>
             {state === 'success' ? (
               <button className="button" onClick={close}>
@@ -204,7 +226,7 @@ export function ContactSheet() {
                         | HTMLSelectElement
                         | HTMLTextAreaElement
                       >,
-                    ) => setDraft({ ...draft, [key]: e.target.value }),
+                    ) => update(key, e.target.value as Draft[typeof key]),
                     onBlur: () =>
                       setErrors((old) => ({ ...old, [key]: validate(key) })),
                   };

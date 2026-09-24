@@ -101,9 +101,17 @@ test('waitlist validation, pending lock, duplicate, recoverable error and succes
   await page.route('**/test-api/waitlist', async (route) => {
     calls++;
     await new Promise((resolve) => setTimeout(resolve, 200));
+    const status = calls === 1 ? 503 : calls === 2 ? 409 : 201;
     await route.fulfill({
-      status: calls === 1 ? 503 : calls === 2 ? 409 : 201,
-      body: '',
+      status,
+      contentType: 'application/json',
+      body: JSON.stringify(
+        status === 409
+          ? { error: { code: 'WAITLIST_ALREADY_REGISTERED' } }
+          : status === 201
+            ? { status: 'accepted' }
+            : { error: { code: 'TEMPORARILY_UNAVAILABLE' } },
+      ),
     });
   });
   await form.getByRole('button').click();
@@ -136,9 +144,14 @@ test('support keyboard validation preserves values on failure and focuses succes
   await expect(form.getByLabel('Message', { exact: true })).toBeFocused();
   await page.keyboard.type('Please help me with my match notification.');
   let fail = true;
-  await page.route('**/test-api/support', (route) =>
-    route.fulfill({ status: fail ? 500 : 204, body: '' }),
-  );
+  const requests: { key: string | undefined; body: unknown }[] = [];
+  await page.route('**/test-api/support', (route) => {
+    requests.push({
+      key: route.request().headers()['idempotency-key'],
+      body: route.request().postDataJSON(),
+    });
+    return route.fulfill({ status: fail ? 503 : 202, body: '' });
+  });
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(form.getByRole('status')).toContainText('couldn’t send');
@@ -149,6 +162,79 @@ test('support keyboard validation preserves values on failure and focuses succes
   await form.getByRole('button').click();
   await expect(form.getByRole('status')).toContainText('Message sent');
   await expect(form.getByRole('status')).toBeFocused();
+  expect(requests).toHaveLength(2);
+  expect(requests[0]?.key).toBeTruthy();
+  expect(requests[1]?.key).toBe(requests[0]?.key);
+  expect(requests[0]?.body).toEqual({
+    email: 'support@example.com',
+    category: 'Feedback',
+    message: 'Please help me with my match notification.',
+  });
+  await form.getByLabel('Message', { exact: true }).fill('A changed message.');
+  await form.getByRole('button').click();
+  await expect(form.getByRole('status')).toContainText('Message sent');
+  expect(requests).toHaveLength(3);
+  expect(requests[2]?.key).not.toBe(requests[1]?.key);
+});
+test('contact conflicts stay distinct from waitlist duplicates and rate limits are safe', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await page.locator('#support').scrollIntoViewIfNeeded();
+  const form = page.getByRole('form', { name: 'Contact FanArena' });
+  await form.getByLabel('Email address').fill('support@example.com');
+  await form.getByRole('combobox').selectOption('Feedback');
+  await form.getByLabel('Message', { exact: true }).fill('Please help me.');
+  await page.route('**/test-api/support', (route) =>
+    route.fulfill({
+      status: 409,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { code: 'IDEMPOTENCY_PAYLOAD_MISMATCH' } }),
+    }),
+  );
+  await form.getByRole('button').click();
+  await expect(form.getByRole('status')).toContainText('couldn’t send');
+  await expect(form.getByRole('status')).not.toContainText(
+    'already on the waitlist',
+  );
+  await expect(form.getByLabel('Message', { exact: true })).toHaveValue(
+    'Please help me.',
+  );
+
+  await page.unroute('**/test-api/support');
+  await page.route('**/test-api/support', (route) =>
+    route.fulfill({
+      status: 429,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        error: {
+          code: 'RATE_LIMITED',
+          retry_after_seconds: 2,
+          message: 'Please wait before trying again.',
+        },
+      }),
+    }),
+  );
+  await form.getByRole('button').click();
+  await expect(form.getByRole('status')).toContainText(
+    'Too many attempts. Please try again in 2 seconds.',
+  );
+  await page.unroute('**/test-api/support');
+  await page.route('**/test-api/support', (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { code: 'VALIDATION_ERROR' } }),
+    }),
+  );
+  await form.getByRole('button').click();
+  await expect(form.getByRole('status')).toContainText(
+    'Please check your details and try again.',
+  );
+  await expect(form.getByLabel('Message', { exact: true })).toHaveValue(
+    'Please help me.',
+  );
 });
 test('reduced motion and store semantics', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
