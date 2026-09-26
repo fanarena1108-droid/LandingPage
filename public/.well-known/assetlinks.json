@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.fanarena.android",
+      "sha256_cert_fingerprints": ["5A:2D:6E:99:C1:57:F2:89:0B:7D:27:12:00:6C:1A:56:46:FB:B7:B3:4D:D9:DA:C7:82:D4:FA:6D:C8:E3:6C:1E"]
+    }
+  }
+]
