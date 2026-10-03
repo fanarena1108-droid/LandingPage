@@ -1,10 +1,19 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { joinWaitlist, sendSupport, SubmissionError } from '../api';
+import {
+  joinWaitlist,
+  sendSupport,
+  SubmissionError,
+  type DesktopContactBody,
+} from '../api';
 import { content } from '../content';
 import { useMobile } from '../useMobile';
 
-type Values = { email: string; category: string; message: string };
+type Values = {
+  email: string;
+  category: DesktopContactBody['category'];
+  message: string;
+};
 type Errors = Partial<Record<keyof Values, string>>;
 type State = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error';
 
@@ -26,10 +35,12 @@ export function Forms({
   const [state, setState] = useState<State>('idle');
   const [result, setResult] = useState('');
   const pending = useRef(false);
+  const idempotencyKey = useRef<string | null>(null);
   const status = useRef<HTMLParagraphElement>(null);
   const form = useRef<HTMLFormElement>(null);
   const fieldId = (name: keyof Values) => `${kind}-${name}`;
-  function update(name: keyof Values, value: string) {
+  function update<K extends keyof Values>(name: K, value: Values[K]) {
+    if (support && values[name] !== value) idempotencyKey.current = null;
     setValues((old) => ({ ...old, [name]: value }));
     setErrors((old) => ({ ...old, [name]: undefined }));
     if (state !== 'submitting') {
@@ -61,9 +72,16 @@ export function Forms({
     setState('submitting');
     setResult('Sending…');
     try {
-      if (support)
-        await sendSupport({ ...values, email, message: values.message.trim() });
-      else await joinWaitlist(email);
+      if (support) {
+        const payload: DesktopContactBody = {
+          ...values,
+          email,
+          message: values.message.trim(),
+        };
+        idempotencyKey.current ??= crypto.randomUUID();
+        await sendSupport(payload, idempotencyKey.current);
+        idempotencyKey.current = null;
+      } else await joinWaitlist(email);
       setState('success');
       setResult(
         support
@@ -86,7 +104,10 @@ export function Forms({
         mobile && !support
           ? duplicate
             ? 'You’re already on the list.'
-            : 'Couldn’t join. Please try again.'
+            : error instanceof SubmissionError &&
+                (error.kind === 'validation' || error.kind === 'rate_limit')
+              ? error.message
+              : 'Couldn’t join. Please try again.'
           : error instanceof SubmissionError &&
               (error.kind !== 'duplicate' || !support)
             ? error.message
@@ -174,7 +195,13 @@ export function Forms({
               id={fieldId('category')}
               name="category"
               value={values.category}
-              onChange={(e) => update('category', e.target.value)}
+              disabled={state === 'submitting'}
+              onChange={(e) =>
+                update(
+                  'category',
+                  e.target.value as DesktopContactBody['category'],
+                )
+              }
               required
               aria-invalid={Boolean(errors.category)}
               aria-describedby={

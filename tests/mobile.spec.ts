@@ -120,12 +120,14 @@ test('contact validates, retains draft, traps focus, closes all ways and retries
   await expect(dialog).toHaveCount(0);
   await page.locator('.contact-trigger').click();
   let requests = 0;
+  const idempotencyKeys: string[] = [];
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
   await page.route('**/test-api/support', async (r) => {
     requests++;
+    idempotencyKeys.push(r.request().headers()['idempotency-key'] ?? '');
     expect(r.request().postDataJSON()).toEqual({
       name: 'Shreya',
       email: 'fan@example.com',
@@ -143,18 +145,24 @@ test('contact validates, retains draft, traps focus, closes all ways and retries
   expect(requests).toBe(1);
   release();
   await expect(dialog.getByRole('status')).toHaveText(
-    'Couldn’t send. Your message is saved here. Try again.',
+    'We couldn’t send this right now. Your details are saved here — please try again.',
   );
   await expect(page.locator('#contact-message')).toHaveValue(
     ' A mobile message ',
   );
   await page.unroute('**/test-api/support');
-  await page.route('**/test-api/support', (r) => r.fulfill({ status: 204 }));
+  await page.route('**/test-api/support', (r) => {
+    idempotencyKeys.push(r.request().headers()['idempotency-key'] ?? '');
+    return r.fulfill({ status: 204 });
+  });
   await dialog.getByRole('button', { name: 'TRY AGAIN' }).click();
   await expect(dialog.getByRole('heading')).toHaveText('You’re all set.');
   await expect(dialog.getByRole('status')).toHaveText(
     'Message sent. Thanks for getting in touch.',
   );
+  expect(requests).toBe(1);
+  expect(idempotencyKeys[0]).toBeTruthy();
+  expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
   await dialog.getByRole('button', { name: 'DONE' }).click();
   await expect(page.locator('.contact-trigger')).toBeFocused();
 });
@@ -198,10 +206,23 @@ test('mobile waitlist uses real states and hides unavailable count', async ({
   for (const [code, text] of [
     [503, 'Couldn’t join. Please try again.'],
     [409, 'You’re already on the list.'],
+    [429, 'Too many attempts. Please try again in 5 seconds.'],
     [201, 'You’re on the list.'],
   ] as const) {
+    const body =
+      code === 409
+        ? { error: { code: 'WAITLIST_ALREADY_REGISTERED' } }
+        : code === 429
+          ? { error: { code: 'RATE_LIMITED', retry_after_seconds: 5 } }
+          : code === 201
+            ? { status: 'accepted' }
+            : { error: { code: 'TEMPORARILY_UNAVAILABLE' } };
     await page.route('**/test-api/waitlist', (r) =>
-      r.fulfill({ status: code }),
+      r.fulfill({
+        status: code,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      }),
     );
     await form.getByRole('button').click();
     await expect(form.getByRole('status')).toHaveText(text);
