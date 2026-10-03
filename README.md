@@ -55,6 +55,10 @@ The static page does not invent endpoints, counts, URLs, or successful submissio
 
 The backend owns validation, persistence, deduplication, abuse prevention, and all private credentials. Contact intake stores a resumable triage task; its internal destination/workflow must be configured before live use. These browser checks never send real messages. The site does not store entered data in local storage.
 
+### Android App Links
+
+`public/.well-known/assetlinks.json` currently lists the two development certificates used to verify App Links on the Mac and Windows test APKs. These are development-only associations, not release-signing evidence. Before a Play release, add the final Play App Signing SHA-256 certificate and remove development certificates that are no longer required.
+
 ## Verification
 
 ```sh

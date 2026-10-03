@@ -195,6 +195,7 @@ export function Forms({
               id={fieldId('category')}
               name="category"
               value={values.category}
+              disabled={state === 'submitting'}
               onChange={(e) =>
                 update(
                   'category',

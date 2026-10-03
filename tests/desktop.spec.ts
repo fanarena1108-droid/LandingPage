@@ -139,21 +139,29 @@ test('support keyboard validation preserves values on failure and focuses succes
     .pressSequentially('support@example.com');
   await page.keyboard.press('Tab');
   await expect(form.getByRole('combobox')).toBeFocused();
-  await page.keyboard.press('ArrowDown');
+  await form.getByRole('combobox').selectOption('Feedback');
   await page.keyboard.press('Tab');
   await expect(form.getByLabel('Message', { exact: true })).toBeFocused();
   await page.keyboard.type('Please help me with my match notification.');
   let fail = true;
+  let releaseFirstResponse!: () => void;
+  const firstResponse = new Promise<void>((resolve) => {
+    releaseFirstResponse = resolve;
+  });
   const requests: { key: string | undefined; body: unknown }[] = [];
-  await page.route('**/test-api/support', (route) => {
+  await page.route('**/test-api/support', async (route) => {
     requests.push({
       key: route.request().headers()['idempotency-key'],
       body: route.request().postDataJSON(),
     });
+    if (fail) await firstResponse;
     return route.fulfill({ status: fail ? 503 : 202, body: '' });
   });
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
+  await expect(form.getByRole('button')).toBeDisabled();
+  await expect(form.getByRole('combobox')).toBeDisabled();
+  releaseFirstResponse();
   await expect(form.getByRole('status')).toContainText('couldn’t send');
   await expect(form.getByLabel('Message', { exact: true })).toHaveValue(
     'Please help me with my match notification.',

@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.fanarena.android",
-      "sha256_cert_fingerprints": ["5A:2D:6E:99:C1:57:F2:89:0B:7D:27:12:00:6C:1A:56:46:FB:B7:B3:4D:D9:DA:C7:82:D4:FA:6D:C8:E3:6C:1E"]
+      "sha256_cert_fingerprints": [
+        "5A:2D:6E:99:C1:57:F2:89:0B:7D:27:12:00:6C:1A:56:46:FB:B7:B3:4D:D9:DA:C7:82:D4:FA:6D:C8:E3:6C:1E",
+        "1E:61:42:7E:7D:E6:6C:C4:63:22:4F:2E:D4:5C:5D:8F:0A:8F:87:05:97:4F:F4:3C:12:25:49:AF:81:20:15:BE"
+      ]
     }
   }
 ]
